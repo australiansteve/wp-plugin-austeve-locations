@@ -62,8 +62,10 @@ function austeve_create_locations_post_type() {
 		'has_archive'         => true,
 		'exclude_from_search' => false,
 		'publicly_queryable'  => true,
-		'capability_type'     => 'page',
-		'menu_icon'				=> 'dashicons-location',
+		'capability_type'     => array( 'location' , 'locations' ),
+        'map_meta_cap'        => true,
+        'menu_icon'				=> 'dashicons-location',
+
 	);
 	
 	// Registering your Custom Post Type
