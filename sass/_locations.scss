@@ -1,0 +1,22 @@
+header.page-header {
+	margin-bottom: 3rem;
+}
+
+#locations-block-grid div {
+	text-align: center;
+	margin: auto; //Gets vertical alignment to be 'middle'
+}
+
+#locations-block-grid article.austeve-locations {
+	position: relative;
+}
+
+#locations-block-grid article.padded {
+	padding: 1rem;
+}
+
+#locations-block-grid .columns {
+    padding-left: 0;
+    padding-right: 0;
+
+}
