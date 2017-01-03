@@ -92,12 +92,12 @@ function austeve_create_locations_post_type() {
 		'labels'              => $taxonomyLabels,
 		'show_admin_column'	=> false,
 		'hierarchical' 		=> true,
-		'rewrite'           => array( 'slug' => 'location-type' ),
+		'rewrite'           => array( 'slug' => 'regions' ),
 		'capabilities'		=> array(
 							    'manage_terms' => 'edit_users',
 							    'edit_terms' => 'edit_users',
 							    'delete_terms' => 'edit_users',
-							    'assign_terms' => 'edit_posts'
+							    'assign_terms' => 'edit_locations'
 							 )
 		);
 
@@ -167,43 +167,5 @@ function austeve_locations_enqueue_script() {
 add_action( 'wp_enqueue_scripts', 'austeve_locations_enqueue_style' );
 add_action( 'wp_enqueue_scripts', 'austeve_locations_enqueue_script' );
 
-function pre_get_posts_order_locations( $query ) {
-	
-	// do not modify queries in the admin
-	if( is_admin() ) {
-		
-		return $query;
-		
-	}
-
-	// only modify queries for 'location' post type
-	if( isset($query->query_vars['post_type']) && $query->query_vars['post_type'] == 'austeve-locations' ) {
-		
-		// find date time now
-		$date_now = date('Y-m-d H:i:s');
-
-		//Find the next 2 locations
-		$query->set('posts_per_page', 2);	
-		$query->set('orderby', 'meta_value');	
-		$query->set('meta_key', 'date');	 	
-		$query->set('meta_type', 'DATETIME');	 
-		$query->set('order', 'ASC');	 
-		$query->set('meta_query', array(
-	        'key'			=> 'date',
-	        'compare'		=> '>=',
-	        'value'			=> $date_now,
-	        'type'			=> 'DATETIME',
-	    ));
-	}
-
-	// return
-	return $query;
-
-}
-
-add_action('pre_get_posts', 'pre_get_posts_order_locations');
-
-
-//Shortcode
 
 ?>
