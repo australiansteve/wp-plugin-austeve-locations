@@ -89,6 +89,41 @@ function austeve_add_location_role_caps() {
 add_action('admin_init','austeve_add_location_role_caps',999);
 
 
+//Store the relationship between the custom roles we've created and the taxonomy that relates to. So that we can filter taxonomies displayed to the admins
+function austeve_save_role_term_relationships() {
+
+	$option_name = 'austeve_regions_role_terms' ;
+	$relationship_array = array();
+
+	//Get all regions
+	$terms = get_terms( array(
+	    'taxonomy' => 'austeve_regions',
+	    'hide_empty' => false,
+	) );
+
+	// Loop through each region - adding the associated role to the list to update
+	foreach($terms as $the_term) { 
+		$relationship_array['austeve_'.$the_term->slug.'_role'] = $the_term->slug;
+	}
+
+
+	if ( get_option( $option_name ) !== false ) {
+
+	    // The option already exists, so we just update it.
+	    update_option( $option_name, json_encode($relationship_array) );
+
+	} else {
+
+	    // The option hasn't been added yet. We'll add it with $autoload set to 'no'.
+	    $deprecated = null;
+	    $autoload = 'no';
+	    add_option( $option_name, json_encode($relationship_array), $deprecated, $autoload );
+	}
+}
+
+add_action('admin_init','austeve_save_role_term_relationships',999);
+
+
 // Add Project Type column to admin header
 function austeve_locations_columns_head($defaults) {
     $defaults['region'] = 'Region';
@@ -112,5 +147,40 @@ function austeve_locations_columns_content($column_name, $post_ID) {
 }
 add_action('manage_austeve-locations_posts_custom_column', 'austeve_locations_columns_content', 10, 2);
 
+
+//Filter the admin call for Regions based on the current users role(s) - Only display regions that the user has access to
+function austeve_filter_regions_for_admins( $args, $taxonomies ) {
+    
+	if (!is_admin() ||  //Not in admin screens 
+		(isset($query->query_vars['post_type']) && $query->query_vars['post_type'] != 'austeve-locations' ) || //Not on a locations admin page
+		!current_user_can('edit_locations') || //Cannot edit locations
+		current_user_can('edit_users')) //Has access to all regions
+	{
+		return $args;
+	}
+
+	//If we get here the current user has access to edit locations, therefore they should be able to set Regions
+
+	//Pull our map from the options table
+	$option_name = 'austeve_regions_role_terms' ;
+	$role_map = json_decode( get_option( $option_name ), true);
+	//Get current user roles
+	$roles = wp_get_current_user()->roles;
+
+	//Set slug filter for each term 
+	$my_terms = array();
+	foreach($roles as $role)
+	{
+		if (array_key_exists($role, $role_map))
+		{
+			array_push($my_terms, $role_map[$role]);
+		}
+	}
+
+	$args['slug'] = $my_terms;
+    return $args;
+}
+
+add_filter( 'get_terms_args', 'austeve_filter_regions_for_admins' , 10, 2 );
 
 ?>
