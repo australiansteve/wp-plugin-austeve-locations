@@ -1,5 +1,25 @@
 <?php
 
+//Helper function that returns an array of term slugs for the given set of user roles
+function austeve_get_my_terms($roles)
+{
+	//Pull our map from the options table
+	$option_name = 'austeve_regions_role_terms' ;
+	$role_map = json_decode( get_option( $option_name ), true);
+
+	$my_terms = array();
+	foreach($roles as $role)
+	{
+		if (array_key_exists($role, $role_map))
+		{
+			array_push($my_terms, $role_map[$role]);
+		}
+	}
+
+	return $my_terms;
+}
+
+
 function austeve_add_roles_on_taxonomy_creation($term_id, $tt_id, $taxonomy) {
 
 	if ($taxonomy == 'austeve_regions')
@@ -134,7 +154,7 @@ add_filter('manage_austeve-locations_posts_columns', 'austeve_locations_columns_
  
 // Add Project Type column content to admin table
 function austeve_locations_columns_content($column_name, $post_ID) {
-    if ($column_name == 'project_types') {
+    if ($column_name == 'region') {
 
     	$term_list = wp_get_post_terms($post_ID, 'austeve_regions', array("fields" => "all"));
     	$string_list = "";
@@ -161,26 +181,45 @@ function austeve_filter_regions_for_admins( $args, $taxonomies ) {
 
 	//If we get here the current user has access to edit locations, therefore they should be able to set Regions
 
-	//Pull our map from the options table
-	$option_name = 'austeve_regions_role_terms' ;
-	$role_map = json_decode( get_option( $option_name ), true);
 	//Get current user roles
 	$roles = wp_get_current_user()->roles;
 
 	//Set slug filter for each term 
-	$my_terms = array();
-	foreach($roles as $role)
-	{
-		if (array_key_exists($role, $role_map))
-		{
-			array_push($my_terms, $role_map[$role]);
-		}
-	}
+	$args['slug'] = austeve_get_my_terms($roles);
 
-	$args['slug'] = $my_terms;
     return $args;
 }
 
 add_filter( 'get_terms_args', 'austeve_filter_regions_for_admins' , 10, 2 );
+
+//Filter the admin call for Regions based on the current users role(s) - Only display regions that the user has access to
+function austeve_filter_locations_for_admins( $query ) {
+    
+	if (!is_admin() ||  //Not in admin screens 
+		(isset($query->query_vars['post_type']) && $query->query_vars['post_type'] != 'austeve-locations' ) || //Not on a locations admin page
+		current_user_can('edit_users') ) //Has access to all regions/locations
+	{
+		return $query;
+	}
+
+	//If we get here the current user has access to view locations, therefore they should be able to set Regions
+
+	//Get current user roles
+	$roles = wp_get_current_user()->roles;
+
+	//Create new tax_query
+	$tax_query = array (
+		array (
+			'taxonomy'         => 'austeve_regions',
+			'terms'            => austeve_get_my_terms($roles),
+			'field'            => 'slug',
+			'operator'         => 'IN',
+		),
+	);
+
+	$query->set( 'tax_query', $tax_query );
+}
+
+add_action( 'pre_get_posts', 'austeve_filter_locations_for_admins' , 10, 1 );
 
 ?>
