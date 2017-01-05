@@ -66,6 +66,7 @@ function austeve_create_locations_post_type() {
         'map_meta_cap'        => true,
         'menu_icon'				=> 'dashicons-location',
 
+
 	);
 	
 	// Registering your Custom Post Type
@@ -166,6 +167,5 @@ function austeve_locations_enqueue_script() {
 
 add_action( 'wp_enqueue_scripts', 'austeve_locations_enqueue_style' );
 add_action( 'wp_enqueue_scripts', 'austeve_locations_enqueue_script' );
-
 
 ?>
