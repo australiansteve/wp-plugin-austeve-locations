@@ -102,6 +102,19 @@ function austeve_add_location_role_caps() {
 		$role->add_cap( 'delete_private_locations' );
 		$role->add_cap( 'delete_published_locations' );
 
+		//Also add capabilities for events
+		$role->add_cap( 'read_events');
+		$role->add_cap( 'read_private_events' );
+		$role->add_cap( 'edit_events' );
+		$role->add_cap( 'edit_others_events' );
+		$role->add_cap( 'edit_private_events' );
+		$role->add_cap( 'edit_published_events' );
+		$role->add_cap( 'publish_events' );
+		$role->add_cap( 'delete_events' );
+		$role->add_cap( 'delete_others_events' );
+		$role->add_cap( 'delete_private_events' );
+		$role->add_cap( 'delete_published_events' );
+
 	}
 
 }
